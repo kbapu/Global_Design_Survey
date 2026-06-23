@@ -1,0 +1,6 @@
+{
+  "name": "Global Design Survey 2026",
+  "description": "A sophisticated, high-ticket consultative survey platform for AI-native design organizations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
