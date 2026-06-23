@@ -1,35 +1,71 @@
+import { createClient } from '@supabase/supabase-js';
 import { SurveyData } from './types';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const isSupabaseConfigured = supabaseUrl && supabaseKey;
+
+export const supabase = isSupabaseConfigured 
+  ? createClient(supabaseUrl, supabaseKey) 
+  : null;
 
 const STORAGE_KEY = 'gds_survey_responses_v1';
 
 export const db = {
-  getResponses: (): SurveyData[] => {
-    try {
-      const data = localStorage.getItem(STORAGE_KEY);
-      return data ? JSON.parse(data) : [];
-    } catch (e) {
-      return [];
+  getResponses: async (): Promise<SurveyData[]> => {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('survey_responses')
+        .select('*')
+        .order('createdAt', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching from Supabase:', error);
+        return [];
+      }
+      return data as SurveyData[];
+    } else {
+      // Fallback to localStorage
+      try {
+        const data = localStorage.getItem(STORAGE_KEY);
+        return data ? JSON.parse(data) : [];
+      } catch (e) {
+        return [];
+      }
     }
   },
   
-  saveResponse: (response: Omit<SurveyData, 'id' | 'createdAt'>): SurveyData => {
+  saveResponse: async (response: Omit<SurveyData, 'id' | 'createdAt'>): Promise<SurveyData | null> => {
     const newResponse: SurveyData = {
       ...response,
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
     };
     
-    const existing = db.getResponses();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([newResponse, ...existing]));
-    
-    // Dispatch a custom event so the admin dashboard can update in real-time (simulated)
-    window.dispatchEvent(new Event('new_survey_response'));
-    
-    return newResponse;
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('survey_responses')
+        .insert([newResponse])
+        .select();
+
+      if (error) {
+        console.error('Error saving to Supabase:', error);
+        throw error;
+      }
+      
+      // Real-time notifications handled by Supabase channels in AdminDashboard
+      return data?.[0] as SurveyData;
+    } else {
+      // Fallback to localStorage
+      const existing = await db.getResponses();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([newResponse, ...existing]));
+      window.dispatchEvent(new Event('new_survey_response'));
+      return newResponse;
+    }
   },
 
-  exportToCSV: () => {
-    const data = db.getResponses();
+  exportToCSV: async () => {
+    const data = await db.getResponses();
     if (data.length === 0) return;
 
     const headers = [

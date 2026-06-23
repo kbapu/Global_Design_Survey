@@ -17,10 +17,10 @@ export function Survey() {
     setData(prev => ({ ...prev, ...updates }));
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (step === 4) {
-      db.saveResponse(data as any);
+      await db.saveResponse(data as any);
       setSubmitted(true);
     } else {
       setStep(s => s + 1);

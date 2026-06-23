@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { db } from '../db';
+import { db, supabase } from '../db';
 import { SurveyData } from '../types';
 import { Download, Users, Briefcase, Bot, LayoutDashboard, ArrowLeft } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
@@ -8,14 +8,36 @@ export function AdminDashboard() {
   const [responses, setResponses] = useState<SurveyData[]>([]);
 
   useEffect(() => {
-    setResponses(db.getResponses());
+    // Initial fetch
+    db.getResponses().then(setResponses);
 
-    const handleNewResponse = () => {
-      setResponses(db.getResponses());
+    // Local fallback event listener
+    const handleLocalUpdate = () => {
+      db.getResponses().then(setResponses);
     };
+    window.addEventListener('new_survey_response', handleLocalUpdate);
 
-    window.addEventListener('new_survey_response', handleNewResponse);
-    return () => window.removeEventListener('new_survey_response', handleNewResponse);
+    // Supabase realtime subscription
+    let channel: any;
+    if (supabase) {
+      channel = supabase
+        .channel('schema-db-changes')
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'survey_responses' },
+          (payload) => {
+            setResponses(prev => [payload.new as SurveyData, ...prev]);
+          }
+        )
+        .subscribe();
+    }
+
+    return () => {
+      window.removeEventListener('new_survey_response', handleLocalUpdate);
+      if (channel) {
+        supabase?.removeChannel(channel);
+      }
+    };
   }, []);
 
   const totalResponses = responses.length;
