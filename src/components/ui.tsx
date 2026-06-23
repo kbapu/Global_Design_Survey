@@ -7,6 +7,7 @@ export function Pill({
   children,
   className
 }: { 
+  key?: React.Key;
   selected: boolean; 
   onClick: () => void; 
   children: React.ReactNode;
@@ -33,6 +34,7 @@ export function RadioItem({
   onClick,
   children
 }: {
+  key?: React.Key;
   selected: boolean;
   onClick: () => void;
   children: React.ReactNode;
