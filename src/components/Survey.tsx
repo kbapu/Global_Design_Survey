@@ -13,6 +13,8 @@ export function Survey() {
   const [data, setData] = useState<Partial<SurveyData>>({});
   const [submitted, setSubmitted] = useState(false);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const updateData = (updates: Partial<SurveyData>) => {
     setData(prev => ({ ...prev, ...updates }));
   };
@@ -20,8 +22,16 @@ export function Survey() {
   const handleNext = async () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (step === 4) {
-      await db.saveResponse(data as any);
-      setSubmitted(true);
+      try {
+        setIsSubmitting(true);
+        await db.saveResponse(data as any);
+        setSubmitted(true);
+      } catch (error) {
+        console.error("Submission failed:", error);
+        alert("Failed to submit survey. Please try again. If using Supabase, check RLS policies.");
+      } finally {
+        setIsSubmitting(false);
+      }
     } else {
       setStep(s => s + 1);
     }
@@ -55,7 +65,7 @@ export function Survey() {
             {step === 1 && <Step1 data={data} updateData={updateData} onNext={handleNext} onBack={handleBack} />}
             {step === 2 && <Step2 data={data} updateData={updateData} onNext={handleNext} onBack={handleBack} />}
             {step === 3 && <Step3 data={data} updateData={updateData} onNext={handleNext} onBack={handleBack} />}
-            {step === 4 && <Step4 data={data} updateData={updateData} onNext={handleNext} onBack={handleBack} />}
+            {step === 4 && <Step4 data={data} updateData={updateData} onNext={handleNext} onBack={handleBack} isSubmitting={isSubmitting} />}
           </div>
         </div>
 

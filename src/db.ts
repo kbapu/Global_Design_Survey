@@ -11,6 +11,16 @@ export const supabase = isSupabaseConfigured
 
 const STORAGE_KEY = 'gds_survey_responses_v1';
 
+function generateUUID() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 export const db = {
   getResponses: async (): Promise<SurveyData[]> => {
     if (isSupabaseConfigured && supabase) {
@@ -38,14 +48,19 @@ export const db = {
   saveResponse: async (response: Omit<SurveyData, 'id' | 'createdAt'>): Promise<SurveyData | null> => {
     const newResponse: SurveyData = {
       ...response,
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       createdAt: new Date().toISOString(),
     };
     
     if (isSupabaseConfigured && supabase) {
+      // Remove undefined values to prevent Supabase errors
+      const sanitizedResponse = Object.fromEntries(
+        Object.entries(newResponse).filter(([_, v]) => v !== undefined)
+      );
+
       const { data, error } = await supabase
         .from('survey_responses')
-        .insert([newResponse])
+        .insert([sanitizedResponse])
         .select();
 
       if (error) {

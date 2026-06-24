@@ -2,7 +2,7 @@ import React from 'react';
 import { StepProps } from '../../types';
 import { CheckCircle2 } from 'lucide-react';
 
-export function Step4({ data, updateData, onNext, onBack }: StepProps) {
+export function Step4({ data, updateData, onNext, onBack, isSubmitting }: StepProps) {
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="mb-12">
@@ -39,15 +39,17 @@ export function Step4({ data, updateData, onNext, onBack }: StepProps) {
       <div className="flex items-center justify-between pt-6 border-t border-gray-100">
         <button 
           onClick={onBack}
-          className="px-6 py-3 bg-white border border-gray-200 rounded-xl font-medium text-gray-900 hover:bg-gray-50 transition-all"
+          disabled={isSubmitting}
+          className="px-6 py-3 bg-white border border-gray-200 rounded-xl font-medium text-gray-900 hover:bg-gray-50 disabled:opacity-50 transition-all"
         >
           Back
         </button>
         <button 
           onClick={onNext}
-          className="flex items-center gap-2 px-8 py-3 bg-black text-white rounded-xl font-medium hover:bg-gray-800 transition-all shadow-md"
+          disabled={isSubmitting}
+          className="flex items-center gap-2 px-8 py-3 bg-black text-white rounded-xl font-medium hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all shadow-md"
         >
-          Submit Survey <CheckCircle2 className="w-4 h-4" />
+          {isSubmitting ? 'Submitting...' : 'Submit Survey'} <CheckCircle2 className="w-4 h-4" />
         </button>
       </div>
     </div>
