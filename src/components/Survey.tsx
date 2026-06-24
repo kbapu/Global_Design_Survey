@@ -31,7 +31,8 @@ export function Survey() {
         const errorMessage = error?.message || (typeof error === 'string' ? error : 'Unknown error');
         const errorDetails = error?.details ? `\nDetails: ${error.details}` : '';
         const errorHint = error?.hint ? `\nHint: ${error.hint}` : '';
-        alert(`Failed to submit survey: ${errorMessage}${errorDetails}${errorHint}\n\nIf using Supabase, please ensure your RLS policies are active and permit public inserts.`);
+        const dbUrlInfo = db.supabaseUrl ? `\n\nConfigured Supabase URL: ${db.supabaseUrl}` : '\n\nConfigured Supabase URL: None/Not Set';
+        alert(`Failed to submit survey: ${errorMessage}${errorDetails}${errorHint}${dbUrlInfo}\n\nIf using Supabase, please ensure your RLS policies are active and permit public inserts.`);
       } finally {
         setIsSubmitting(false);
       }

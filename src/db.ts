@@ -1,15 +1,33 @@
 import { createClient } from '@supabase/supabase-js';
 import { SurveyData } from './types';
 
-let rawUrl = (import.meta.env.VITE_SUPABASE_URL || '').trim();
-// Remove /rest/v1 if the user mistakenly provided the REST URL instead of the Project URL
-rawUrl = rawUrl.replace(/\/rest\/v1\/?$/i, '');
-// Remove trailing slashes to prevent "Invalid path specified in request URL" errors from Supabase/PostgREST
-while (rawUrl.endsWith('/')) {
-  rawUrl = rawUrl.slice(0, -1);
+function cleanEnvValue(val: string): string {
+  if (!val) return '';
+  let cleaned = val.trim();
+  // Strip starting/ending single or double quotes
+  if ((cleaned.startsWith('"') && cleaned.endsWith('"')) || (cleaned.startsWith("'") && cleaned.endsWith("'"))) {
+    cleaned = cleaned.slice(1, -1).trim();
+  }
+  return cleaned;
 }
+
+let rawUrl = cleanEnvValue(import.meta.env.VITE_SUPABASE_URL);
+
+if (rawUrl) {
+  // Remove /rest/v1 if the user mistakenly provided the REST URL instead of the Project URL
+  rawUrl = rawUrl.replace(/\/rest\/v1\/?$/i, '');
+  // Remove trailing slashes
+  while (rawUrl.endsWith('/')) {
+    rawUrl = rawUrl.slice(0, -1);
+  }
+  // If no protocol is specified, prepend https://
+  if (rawUrl && !/^https?:\/\//i.test(rawUrl)) {
+    rawUrl = 'https://' + rawUrl;
+  }
+}
+
 const supabaseUrl = rawUrl;
-const supabaseKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim();
+const supabaseKey = cleanEnvValue(import.meta.env.VITE_SUPABASE_ANON_KEY);
 const isSupabaseConfigured = !!(supabaseUrl && supabaseKey);
 
 export const supabase = isSupabaseConfigured 
@@ -29,6 +47,8 @@ function generateUUID() {
 }
 
 export const db = {
+  supabaseUrl,
+  isSupabaseConfigured,
   getResponses: async (): Promise<SurveyData[]> => {
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase
