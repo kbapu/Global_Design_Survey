@@ -26,9 +26,12 @@ export function Survey() {
         setIsSubmitting(true);
         await db.saveResponse(data as any);
         setSubmitted(true);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Submission failed:", error);
-        alert("Failed to submit survey. Please try again. If using Supabase, check RLS policies.");
+        const errorMessage = error?.message || (typeof error === 'string' ? error : 'Unknown error');
+        const errorDetails = error?.details ? `\nDetails: ${error.details}` : '';
+        const errorHint = error?.hint ? `\nHint: ${error.hint}` : '';
+        alert(`Failed to submit survey: ${errorMessage}${errorDetails}${errorHint}\n\nIf using Supabase, please ensure your RLS policies are active and permit public inserts.`);
       } finally {
         setIsSubmitting(false);
       }
