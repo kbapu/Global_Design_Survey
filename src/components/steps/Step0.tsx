@@ -2,6 +2,7 @@ import React from 'react';
 import { StepProps } from '../../types';
 import { RadioItem } from '../ui';
 import { ArrowRight } from 'lucide-react';
+import { SurveyThumbnail } from '../SurveyThumbnail';
 
 const REGIONS = [
   "North America", "South America", "Europe", "Asia Pacific", "Middle East", "Africa"
@@ -20,6 +21,8 @@ export function Step0({ data, updateData, onNext }: StepProps) {
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <SurveyThumbnail selectedRegion={data.region} />
+
       <div className="mb-8">
         <h2 className="text-sm font-semibold tracking-widest text-gray-500 uppercase mb-2">About You</h2>
         <h3 className="text-2xl font-semibold text-gray-900 mb-2">Where are you based?</h3>
