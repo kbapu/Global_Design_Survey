@@ -1,9 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 import { SurveyData } from './types';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-const isSupabaseConfigured = supabaseUrl && supabaseKey;
+let rawUrl = (import.meta.env.VITE_SUPABASE_URL || '').trim();
+// Remove trailing slashes to prevent "Invalid path specified in request URL" errors from Supabase/PostgREST
+while (rawUrl.endsWith('/')) {
+  rawUrl = rawUrl.slice(0, -1);
+}
+const supabaseUrl = rawUrl;
+const supabaseKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim();
+const isSupabaseConfigured = !!(supabaseUrl && supabaseKey);
 
 export const supabase = isSupabaseConfigured 
   ? createClient(supabaseUrl, supabaseKey) 
