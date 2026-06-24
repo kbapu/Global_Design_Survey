@@ -2,6 +2,8 @@ import { createClient } from '@supabase/supabase-js';
 import { SurveyData } from './types';
 
 let rawUrl = (import.meta.env.VITE_SUPABASE_URL || '').trim();
+// Remove /rest/v1 if the user mistakenly provided the REST URL instead of the Project URL
+rawUrl = rawUrl.replace(/\/rest\/v1\/?$/i, '');
 // Remove trailing slashes to prevent "Invalid path specified in request URL" errors from Supabase/PostgREST
 while (rawUrl.endsWith('/')) {
   rawUrl = rawUrl.slice(0, -1);
